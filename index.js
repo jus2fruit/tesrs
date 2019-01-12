@@ -1,5 +1,6 @@
 const discord = require('discord.js');
 var bot = new discord.Client();
+var Discord = discord
 var client = bot
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
@@ -22,7 +23,7 @@ app.listen(app.get('port'), function(){
     console.log(`bot en fonctionnement sur le port ${app.get('port')}`)
 })
 
-const DBL = require("./dblapi.js");
+const DBL = require("dblapi.js");
 const dbl = new DBL(process.env.TOKEN2, bot);
 
 
@@ -41,12 +42,15 @@ bot.on('ready', () => {
   console.log ("bot ready !" + bot.guilds.size )
 
   setInterval(() => {
-  bot.user.setActivity(`[v/help] | vaffan bot ${bot.guilds.size} serveurs`, { type: "STREAMING", url: "https://www.twitch.tv/omega33" });
+  bot.user.setActivity(`[v/help] ${bot.guilds.size} serveurs. V1.0.2`, { type: "STREAMING", url: "https://www.twitch.tv/omega33" });
   var status = [
-      `[v/help] | vaffan bot ${bot.guilds.size} serveurs`
+      `[v/help] ${bot.guilds.size} serveurs. V1.0.2`
   ];
 }, 7200)
-
+  setInterval(() => {
+      let gameval = Math.floor((Math.random() * status.length));
+      bot.user.setActivity(`${status[gameval]}`, { type: "STREAMING", url: "https://www.twitch.tv/omega33" });
+  }, 10 * 1000);
 
 
 });
@@ -59,11 +63,6 @@ bot.on('ready', () => {
 bot.login(process.env.TOKEN);
 
 
-db.defaults({money: []})
-  .write()
-
-
-
 let warns = JSON.parse(fs.readFileSync("./data/warns.json", "utf8"));
 let inline = true
 
@@ -73,50 +72,9 @@ bot.on ('message' , message=> {
     
     var args = message.content.substring(prefix.length).split(" ");
     const command = args.shift().toLowerCase();
-
-
-
-    if (message.content === ("ping")) {
-        message.channel.send(`:ping_pong: pong ! ${(client.ping).toFixed(0)} ms `)
-        console.log('ping pong !')
-
-    }
-
-
-    if (message.content === ("bonne nuit")) {
-        message.channel.send("bonne nuit à toi")
-        console.log('bonne nuit')
-    }
-    if (message.content === ("Bonne nuit")){
-        message.channel.send("bonne nuit à toi")
-         console.log('bonne nuit')
-    }
-    if (message.content === ("test")){
-        message.channel.send("tout est fonctionnel !")
-        console.log('test')
-    }
-    if (message.content === ("bonjour")){
-        message.channel.send("bonjour!")
-        console.log('bonjour')
-    }
-
-    if (message.content === ("Bonjour")){
-        message.channel.send("bonjour!")
-        console.log('bonjour')
-    }
-
-    if (message.content === ("bonsoir")){
-        message.channel.send("bonsoir!")
-        console.log('bonsoir')
-    }
-
-    if (message.content === ("Bonsoir")){
-        message.channel.send("bonsoir!")
-        console.log('bonsoir')
-    }
-
      
     var msgauthor = message.author.id;
+    const moment = require('moment');
 
 
     if (message.author.bot)return;
@@ -127,6 +85,7 @@ bot.on ('message' , message=> {
 
      switch (args[0].toLowerCase()){
          
+
 
         case "profile":
 
@@ -139,38 +98,57 @@ bot.on ('message' , message=> {
 
         const member = message.mentions.members.first() || message.guild.members.get(arg[0]) || message.member;
 
-        var usercreatedate = message.author.createdAt.toString().split(' ')       
+              
         var msgnom = message.mentions.members.first(); 
 
-         var stats_embed = new discord.RichEmbed()
-         .setColor('#01FF3E')
-         .setTitle(`profile utilisateur :`)
-         .addField("nom de l'utilisateur", message.author.username)
-         .addField("user ID", msgauthor, true)
-         .addField("Status", `${status[member.user.presence.status]}`, inline, true)
-         .addField("jeux", `${member.user.presence.game ? `${member.user.presence.game.name}` : "ne joue a rien"}`,inline, true)
-         .addField("Roles", `${member.roles.filter(r => r.id !== message.guild.id).map(roles => `\`${roles.name}\``).join(" **|** ") || "l'utilisateur n'a pas de role"}`, true)
-         .setThumbnail(message.author.avatarURL)
-         .addField("date de création de l'utilisateur", usercreatedate[1] + ' ' + usercreatedate[2]+','+usercreatedate[3])
 
+        var infomember = message.mentions.members.first();
+        
+        var usercreated_date = moment(member.user.createdTimestamp).format("DD/MM/YYYY - HH:mm:ss");
+        var userjoining_date = moment(member.joinedTimestamp).format("DD/MM/YYYY - HH:mm:ss");
+   
+                             
+          
+         var stats_embed = new discord.RichEmbed()
+         .setColor('RANDOM')
+         .setTitle(`profile utilisateur :`)
+         .addField("nom de l'utilisateur :", message.author.username)
+         .addField("user ID :", msgauthor, true)
+         .addField('Dernier message :', member.lastMessage, true)
+         .addField("Status :", `${status[member.user.presence.status]}`, inline, true)
+         .addField("jeux :", `${member.user.presence.game ? `${member.user.presence.game.name}` : "ne joue a rien"}`,inline, true)
+         .addField("**Compte créer le : **", usercreated_date, true)
+         .addField("**Date d'arriver : **", userjoining_date, true)
+         .addField("Roles :", `${member.roles.filter(r => r.id !== message.guild.id).map(roles => `\`${roles.name}\``).join(" **|** ") || "l'utilisateur n'a pas de role"}`)
+         .setThumbnail(message.author.avatarURL)
+         console.log('cmd profile')
+         
          if(message.mentions.users.size === 0) {
       
           return message.channel.send(stats_embed)
+          
 
         }else{        
 
+          var infomember = message.mentions.members.first();
+          var infouser = infomember.user;
+          var usercreated_date = moment(infouser.createdTimestamp).format("DD/MM/YYYY - HH:mm:ss");
+          var userjoining_date = moment(infomember.joinedTimestamp).format("DD/MM/YYYY - HH:mm:ss");
           var msgmention = message.mentions.members.first().id;
  
           var profilede_embed = new discord.RichEmbed()
-          .setColor('#01FF3E')
+          .setColor('RANDOM')
           .setTitle(`profile utilisateur :`)
-          .addField("nom de l'utilisateur", msgnom)
-          .addField("user ID", msgmention, true)
-          .addField("Status", `${status[member.user.presence.status]}`, inline, true)
-         .addField("jeux", `${member.user.presence.game ? `${member.user.presence.game.name}` : "ne joue a rien"}`,inline, true)
-         .addField("Roles", `${member.roles.filter(r => r.id !== message.guild.id).map(roles => `\`${roles.name}\``).join(" **|** ") || "l'utilisateur n'a pas de role"}`, true)
+          .addField("nom de l'utilisateur :", msgnom)
+          .addField("user ID :", msgmention, true)
+          .addField('Dernier message : ', infomember.lastMessage, true)
+          .addField("Status :", `${status[member.user.presence.status]}`, inline, true)
+          .addField("jeux :", `${member.user.presence.game ? `${member.user.presence.game.name}` : "ne joue a rien"}`,inline, true)
+          .addField("Compte créer le : ", usercreated_date, true)
+          .addField("Date d'arriver : ", userjoining_date, true)
+          .addField("Roles :", `${member.roles.filter(r => r.id !== message.guild.id).map(roles => `\`${roles.name}\``).join(" **|** ") || "l'utilisateur n'a pas de role"}`)
           .setThumbnail(message.mentions.members.first().user.avatarURL)
-          .addField("date de création de l'utilisateur", usercreatedate[1] + ' ' + usercreatedate[2]+','+usercreatedate[3])
+          console.log('cmd profile')
           
  
           message.channel.send({embed: profilede_embed})
@@ -178,6 +156,8 @@ bot.on ('message' , message=> {
         }
 
         break;
+
+
 
         case "logo":
 
@@ -187,6 +167,7 @@ bot.on ('message' , message=> {
         .setColor('#25c059')
         .setTitle("**Voici ton logo**")
         .setImage(message.author.avatarURL)
+        console.log('cmd logo')
  
         if(message.mentions.users.size === 0) {
       
@@ -199,6 +180,7 @@ bot.on ('message' , message=> {
          .addField("**Voici le logo de**", msgnom)
          .setImage(message.mentions.members.first().user.avatarURL)
          message.channel.send(logode_embed)
+         console.log('cmd logo')
  
        }
  
@@ -225,11 +207,13 @@ bot.on ('message' , message=> {
         .addField("__Réponse:__", reponse)
         message.channel.send(b_embed)
         message.delete(1000);
+        console.log('cmd 8ball')
 
-        break;
+        break;      
+
+}
+
     
-
-     }
 
     if (message.content === prefix + "logobot"){
         var logobot_embed = new discord.RichEmbed()
@@ -237,12 +221,20 @@ bot.on ('message' , message=> {
         .setTitle("**Voici le logo du bot**")
         .setImage(bot.user.avatarURL)
         message.channel.send(logobot_embed)
+        console.log('cmd logobot')
 
     }
 
+    if (message.guild.emojis.size === 0) {
+      emojis = 'Aucun';
+  } else {
+      emojis = message.channel.guild.emojis.map(e => e).join(" ");
+  }
+
     if (message.content === prefix + "hh"){
 
-      if(!message.member.hasPermission('MANAGE_MESSAGES'))
+      if(!message.member.hasPermission('MANAGE_MESSAGES') )
+
   
       return
 
@@ -251,20 +243,19 @@ bot.on ('message' , message=> {
       .setTitle("**×HELP!**")
       .setDescription(` **SALUT ${message.author.username} !**\n \n **--------------** `)
 
-      .addField("**__►FUN :__**", "v/8ball == Posez-lui une question, il vous répondra. \nv/roll == Vous donne un chiffre entre 1 et 10. \nv/choose <propisitions1 | propisitions2> == Le bot va faire un choix. \nv/bvn == Souhaitez la bienvenue aux nouveaux arrivants. \nv/piece == Pile ou face.\n \n **--------------**\n  ")
+      .addField("**__►FUN__**", "v/love == voyez si sa match entre vous\nv/say == Faites dire ce que vous voulez au bot\nv/8ball == Posez lui une question il vous répondra. \nv/roll == Vous donne un chifre entre 1 et 10. \nv/choose <propisitions1 | propisitions2> == Le bot va faire un choix. \nv/bvn == Souhaitez la bienvenue aux nouveaux. \nv/piece == Pile ou face.\n \n **--------------**\n  ")
 
-      .addField("**__►MODÉRATION :__**", "v/clear <nombres> == Supprime le nombre de message demandé.\nv/mute == Pour mute une personne. \nv/unmute == Pour unmute une personne.\n \n**--------------**\n")
+      .addField("**__►MODÉRATION__**", "v/clear <nombres> == Clear le nombre de messages demandé.\nv/mute == Pour mute une personne. \nv/unmute == Pour unmute une personne.\n \n**--------------**\n")
 
-      .addField("**__►IMAGES :__**","v/logo <pseudo> == Vous affiche votre logo.\nv/logobot == Affiche le logo du bot.\n \n**--------------**\n")
+      .addField("**__►IMAGES__**","v/logo <pseudo> == Vous affiche votre logo.\nv/logobot == Affiche le logo du bot.\n \n**--------------**\n")
 
-      .addField("**__►AUTRES :__**", "v/calc == Permet de résoudre un calcul.\nv/poll == Faîtes un strawpoll.\nv/serverstats == Vous affiche les statistiques du serveur.\nv/profile <pseudo> == Vous affiche votre profil.\nv/stats = Vous affiche les statistiques du bot. \n \n**--------------**\n")
+      .addField("**__►AUTRES__**", "v/maj == Vous pouvez voir la dernière maj du bot\nv/calc == Permet de resoudre un calcul.\nv/poll == Faite un strawpoll.\nv/serverstats == Vous affiche les stats du serveur.\nv/profile <pseudo> == vous afichera votre profile\nv/stats = affichera les stats du bot \n \n**--------------**\n")
 
-      .addField('**__►LINK__ :**', `Invite Link [**CLICK !**](https://discordapp.com/oauth2/authorize?client_id=406066553751076864&scope=bot&permissions=2146958591)\n Serveur discord  [**REJOIN**](https://discord.gg/3JuDXCC) `)
-
+      .addField('**__►LINK__**', `Invite Link [**CLICK !**](https://discordapp.com/oauth2/authorize?client_id=406066553751076864&scope=bot&permissions=2146958591)\n Serveur discord  [**CLICK !**](https://discord.gg/3JuDXCC) `)
+      .setFooter("Bot Programmé par omega#9187")
+      console.log('cmd demande help')
 
     message.channel.send(helphh_embed);
-
-
 
 
   }
@@ -278,16 +269,17 @@ bot.on ('message' , message=> {
       .setTitle("**×HELP!**")
       .setDescription(` **SALUT ${message.author.username} !**\n \n **--------------** `)
 
-      .addField("**__►FUN :__**", "v/8ball == Posez-lui une question, il vous répondra. \nv/roll == Vous donne un chiffre entre 1 et 10. \nv/choose <propisitions1 | propisitions2> == Le bot va faire un choix. \nv/bvn == Souhaitez la bienvenue aux nouveaux arrivants. \nv/piece == Pile ou face.\n \n **--------------**\n  ")
+      .addField("**__►FUN__**", "v/love == voyez si sa match entre vous\nv/say == Faites dire ce que vous voulez au bot\nv/8ball == Posez lui une question il vous répondra. \nv/roll == Vous donne un chifre entre 1 et 10. \nv/choose <propisitions1 | propisitions2> == Le bot va faire un choix. \nv/bvn == Souhaitez la bienvenue aux nouveaux. \nv/piece == Pile ou face.\n \n **--------------**\n  ")
 
-      .addField("**__►MODÉRATION :__**", "v/clear <nombres> == Supprime le nombre de message demandé.\nv/mute == Pour mute une personne. \nv/unmute == Pour unmute une personne.\n \n**--------------**\n")
+      .addField("**__►MODÉRATION__**", "v/clear <nombres> == Clear le nombre de messages demandé.\nv/mute == Pour mute une personne. \nv/unmute == Pour unmute une personne.\n \n**--------------**\n")
 
-      .addField("**__►IMAGES :__**","v/logo <pseudo> == Vous affiche votre logo.\nv/logobot == Affiche le logo du bot.\n \n**--------------**\n")
+      .addField("**__►IMAGES__**","v/logo <pseudo> == Vous affiche votre logo.\nv/logobot == Affiche le logo du bot.\n \n**--------------**\n")
 
-      .addField("**__►AUTRES :__**", "v/calc == Permet de résoudre un calcul.\nv/poll == Faîtes un strawpoll.\nv/serverstats == Vous affiche les statistiques du serveur.\nv/profile <pseudo> == Vous affiche votre profil.\nv/stats = Vous affiche les statistiques du bot. \n \n**--------------**\n")
+      .addField("**__►AUTRES__**", "v/maj == Vous pouvez voir la dernière maj du bot\nv/calc == Permet de resoudre un calcul.\nv/poll == Faite un strawpoll.\nv/serverstats == Vous affiche les stats du serveur.\nv/profile <pseudo> == vous afichera votre profile\nv/stats = affichera les stats du bot \n \n**--------------**\n")
 
-      .addField('**__►LINK__ :**', `Invite Link [**CLICK !**](https://discordapp.com/oauth2/authorize?client_id=406066553751076864&scope=bot&permissions=2146958591)\n Serveur discord  [**REJOIN**](https://discord.gg/3JuDXCC) `)
-
+      .addField('**__►LINK__**', `Invite Link [**CLICK !**](https://discordapp.com/oauth2/authorize?client_id=406066553751076864&scope=bot&permissions=2146958591)\n Serveur discord  [**CLICK !**](https://discord.gg/3JuDXCC) `)
+      .setFooter("Bot Programmé par omega#9187")
+      console.log('cmd demande help')
 
        
     message.author.send(help_embed);
@@ -296,12 +288,76 @@ bot.on ('message' , message=> {
 }
 
 
+if (message.content === prefix + "hha"){
+
+  if (message.author.id !== "280753236548386816")
+
+
+  return
+
+  var helphh_embed = new discord.RichEmbed()
+  .setColor('RANDOM')
+  .setTitle("**×HELP!**")
+  .setDescription(` **SALUT ${message.author.username} !**\n \n **--------------** `)
+
+  .addField("**__►FUN__**", "v/love == voyez si sa match entre vous\nv/say == Faites dire ce que vous voulez au bot\nv/8ball == Posez lui une question il vous répondra. \nv/roll == Vous donne un chifre entre 1 et 10. \nv/choose <propisitions1 | propisitions2> == Le bot va faire un choix. \nv/bvn == Souhaitez la bienvenue aux nouveaux. \nv/piece == Pile ou face.\n \n **--------------**\n  ")
+
+  .addField("**__►MODÉRATION__**", "v/clear <nombres> == Clear le nombre de messages demandé.\nv/mute == Pour mute une personne. \nv/unmute == Pour unmute une personne.\n \n**--------------**\n")
+
+  .addField("**__►IMAGES__**","v/logo <pseudo> == Vous affiche votre logo.\nv/logobot == Affiche le logo du bot.\n \n**--------------**\n")
+
+  .addField("**__►AUTRES__**", "v/maj == Vous pouvez voir la dernière maj du bot\nv/calc == Permet de resoudre un calcul.\nv/poll == Faite un strawpoll.\nv/serverstats == Vous affiche les stats du serveur.\nv/profile <pseudo> == vous afichera votre profile\nv/stats = affichera les stats du bot \n \n**--------------**\n")
+
+  .addField('**__►LINK__**', `Invite Link [**CLICK !**](https://discordapp.com/oauth2/authorize?client_id=406066553751076864&scope=bot&permissions=2146958591)\n Serveur discord  [**CLICK !**](https://discord.gg/3JuDXCC) `)
+  .setFooter("Bot Programmé par omega#9187")
+  console.log('cmd demande help')
+
+message.channel.send(helphh_embed);
+
+
+}
+
+
+if(message.content === (prefix + "maj")){
+
+
+
+
+  var maj_embed = new discord.RichEmbed()
+    .setColor("RANDOM")
+    .setTitle("**Mise à jour**")
+    .setDescription("Voici les nouvautées du bot :")
+
+    .addField("**Nouvelle(s) commande(s) :**", "``v/say``\n``v/maj``\n``v/love``")
+
+    .addField("**Autre :**", "La commande ``v/help`` a était mis à jour.\nLa commande ``v/stats`` a aussi était mise à jour.\nLe bug de la commande ``v/profile`` à aussi était corrigé.")
+    .setFooter("Bot Programmé par omega#9187")
+    console.log('cmd maj')
+
+
+  message.channel.send(maj_embed);
+
+
+}
+
+
+if(message.content.startsWith(prefix + "say")){
+  console.log('cmd say')
+	
+  message.delete(message.author);
+
+var text = message.content.split(' ').slice(1).join(' ')
+if(!text) return message.channel.send(' ? ')
+message.channel.send(text)
+}
+
+
+
   let memberCount = message.guild.memberCount
   let humain = message.guild.members.filter(m => !m.user.bot).size
   let bots = memberCount - humain
   let online = message.guild.presences.size
-  var serveurcreatedate = message.guild.createdAt.toString().split(' ')
-
+  var guild_date = moment(message.guild.createdAt).format("DD/MM/YYYY - HH:mm:ss");
   var grade = message.guild.roles.filter(r => r.id !== message.guild.id).map(r => r.name).join(', ')
 
   var emojis;
@@ -313,6 +369,7 @@ bot.on ('message' , message=> {
 
 
   if (message.content === prefix + "serverstats"){
+    console.log('cmd serverstats')
 
     let sicon = message.guild.iconURL;
 
@@ -329,7 +386,7 @@ bot.on ('message' , message=> {
         .addField("En ligne", online ,inline)
         .addField("Rôles", message.guild.roles.size, inline)
         .addField("Channels", message.guild.channels.size, inline)
-        .addField("Création du serveur", serveurcreatedate[1] + ' ' + serveurcreatedate[2] + ' ' + serveurcreatedate[3], inline)
+        .addField("Création du serveur", guild_date, inline)
         .addField("Région", message.guild.region, inline)
         .addField("liste des grades", grade)      
         .addField("liste des émojis", emojis)
@@ -340,10 +397,43 @@ bot.on ('message' , message=> {
 
 
 
-  }
+  };
+
+  if (message.content === prefix + "si"){
+
+
+    console.log('cmd serverstats')
+
+    let sicon = message.guild.iconURL;
+
+
+    var si_embed = new discord.RichEmbed()
+        .setColor("RANDOM")
+        .setAuthor(message.guild.name, sicon)
+        .setThumbnail(message.guild.iconURL)
+        .addField("Propriétaire du serveur", message.guild.owner, inline)
+        .addField("ID -", message.guild.id, inline)
+        .addField("Membres", memberCount, inline)
+        .addField("humains", humain, inline)
+        .addField("Bots", bots, inline)
+        .addField("En ligne", online ,inline)
+        .addField("Rôles", message.guild.roles.size, inline)
+        .addField("Channels", message.guild.channels.size, inline)
+        .addField("Création du serveur", guild_date, inline)
+        .addField("Région", message.guild.region, inline)
+        .addField("liste des grades", grade)      
+        .addField("liste des émojis", emojis)
+
 
   
+    message.channel.send(si_embed)
+
+
+
+  }
+
   if (message.content === prefix + "stats"){
+
 
 
 
@@ -351,12 +441,16 @@ bot.on ('message' , message=> {
     .setColor("RANDOM")  
     .setAuthor(`vaffan bot stats`, `https://images.discordapp.net/avatars/406066553751076864/7d14144003d7f1dc85aa447bec7d7c3f.png?size=512`) 
     .addField("createur", "omega#9187")
-
     .setThumbnail(`https://images.discordapp.net/avatars/406066553751076864/7d14144003d7f1dc85aa447bec7d7c3f.png?size=512`)
     .addField(`Lib`, `Discord.js (Javascript)`, true)
-    .addField(`Version`, `1.0.1`, true)
+    .addField(`Version`, `1.0.2`, true)
     .addField(`Serveurs`, `${bot.guilds.size.toLocaleString()}`, true)
-    .addField(`Users`, `${bot.users.size.toLocaleString()}`, true)
+    .addField(`Utilisateurs`, `${bot.users.size.toLocaleString()}`, true)
+    .addField('Lien d\'invitation', `[**Invitation**](https://discordapp.com/oauth2/authorize?client_id=406066553751076864&scope=bot&permissions=2146958591)`)
+    .addField('Serveur de Support', '[**rejoin nous**](https://discord.gg/3JuDXCC)')
+    .setImage("https://discordbots.org/api/widget/406066553751076864.png")
+    console.log('cmd stats')
+
 
     
 
@@ -365,19 +459,28 @@ bot.on ('message' , message=> {
   }
 
 
+
+
  if (message.content === prefix + "serveur"){
 
   if (message.author.id !== "280753236548386816") 
   return message.reply("tu n'est pas omega");
 
 
-   message.author.send(`salut maître voici mes serveurs  \n\`\`\`\n${bot.guilds.map(g => g.name).join(" \n")}\`\`\``)
+
+   //bot.guilds.map(g => {g.channels.random().createInvite({ maxAge : 0, unique: false})})
+
+   message.author.send(`salut maître voici mes serveurs,`  `\n${bot.guilds.map(g => g.name).join(" , ")
+  }`)
 
  }
 
 
+ 
+
 
   if(message.content.startsWith(prefix + "poll")) {
+    console.log('cmd poll')
     let args = message.content.split(" ").slice(1);
     let thingToEcho = args.join(" ")
 
@@ -401,9 +504,11 @@ bot.on ('message' , message=> {
 if(message.content.startsWith (prefix + "choose")) {
 
 let replies = [`${args[1]}`, `${args[3]}`];
-let result = Math.floor((Math.random() * replies.length));
+let result = Math.floor((Math.random() * 2));
 
 message.reply(`Mon choix est : ${replies[result]}`)
+console.log('cmd choose')
+
 
 }
 
@@ -423,9 +528,11 @@ if(message.content.startsWith (prefix + "clear")) {
         console.log("clear")
     }
 
+
+
     if(message.content.startsWith(prefix + "mute")){
 
-        if(!message.guild.member(message.author).roles.find('name', 'Modérateurs')) return message.reply("**Tu n'as pas la permission d'utiliser cette commande !**");
+        if(!message.member.hasPermission('MANAGE_MESSAGES')) return message.reply("**Tu n'as pas la permission d'utiliser cette commande !**");
 
         if (!message.guild.roles.exists('name', 'Mute')) return message.channel.send("Le rôle `Mute` n'existe pas !")
 
@@ -433,7 +540,7 @@ if(message.content.startsWith (prefix + "clear")) {
         var Mute = message.guild.roles.find('name', 'Mute');
         let member = message.mentions.members.first();
 
-        if(!message.guild.member(message.author).roles.find('name', 'Modérateurs')) return message.reply("**Tu n'as pas la permission d'utiliser cette commande !**").catch(console.error);
+        if(!message.member.hasPermission('MANAGE_MESSAGES')) return message.reply("**Tu n'as pas la permission d'utiliser cette commande !**").catch(console.error);
 
         if(!member) return message.channel.send("Vous devez mentionner la personne à mute !");
 
@@ -447,7 +554,7 @@ if(message.content.startsWith (prefix + "clear")) {
         var Mute = message.guild.roles.find('name', 'Mute');
         var member = message.mentions.members.first();
 
-        if(!message.guild.member(message.author).roles.find('name', 'Modérateurs')) return message.reply("**Tu n'as pas la permission d'utiliser cette commande !**").catch(console.error);
+        if(!message.member.hasPermission('MANAGE_MESSAGES')) return message.reply("**Tu n'as pas la permission d'utiliser cette commande !**").catch(console.error);
 
         if(message.mentions.users.size === 0){
         return message.channel.send("Vous devez mentionner la personne à unmute !");
@@ -458,9 +565,8 @@ if(message.content.startsWith (prefix + "clear")) {
         };
 
 
-
-
         if(message.content.startsWith(prefix + "calc")) {
+      console.log('cmd calc')
           var args = message.content.split(' ').slice(1);      
           let input = args.join(" ");
           if (!input) {
@@ -486,6 +592,7 @@ if(message.content.startsWith (prefix + "clear")) {
       
   
       message.channel.send(calc_embed)
+
   
   };
 
@@ -496,9 +603,11 @@ if(message.content.startsWith (prefix + "clear")) {
 
 
 bot.on('message', message => {
-    if (message.content.startsWith("v/piece")) {
- var commande = [":./data/moneybag: | La pièce dit : Face.", ":moneybag: | La pièce dit : Pile."]
+    if (message.content.startsWith(prefix + "piece")) {
+ var commande = [":moneybag: | La pièce dit : Face.", ":moneybag: | La pièce dit : Pile."]
       message.channel.send(`${(commande[Math.floor(Math.random() * commande.length)])}`)
+    console.log('cmd piece')
+
  }
  
  });
@@ -506,9 +615,11 @@ bot.on('message', message => {
 
  
  bot.on('message', message => {
-    if (message.content.startsWith("v/roll")) {
+    if (message.content.startsWith(prefix + "roll")) {
  var commande = [":control_knobs: | Vous etes tombé sur le numero: 1",":control_knobs: | Vous etes tombé sur le numero: 2",":control_knobs: | Vous etes tombé sur le numero: 3",":control_knobs: | Vous etes tombé sur le numero: 4",":control_knobs: | Vous etes tombé sur le numero: 5",":control_knobs: | Vous etes tombé sur le numero: 6",":control_knobs: | Vous etes tombé sur le numero: 7",":control_knobs: | Vous etes tombé sur le numero: 8",":control_knobs: | Vous etes tombé sur le numero: 9",":control_knobs: | Vous etes tombé sur le numero: 10"]
       message.channel.send(`${(commande[Math.floor(Math.random() * commande.length)])}`)
+    console.log('cmd roll')
+
  }
  });
 
@@ -516,282 +627,25 @@ bot.on('message', message => {
 
 
  bot.on('message', message => {
-    if (message.content.startsWith("v/bvn")) {
+    if (message.content.startsWith(prefix + "bvn")) {
        message.delete(1000);
        message.channel.send(":tada: | **" + message.author.username + "** vous souhaite la bienvenue !");
+    console.log('cmd bvn')
+
     }
- });
-
-   bot.on("message", message => {
 
 
-   
-   if (message.content.startsWith(prefix + "warn")){
- 
-    let warns = JSON.parse(fs.readFileSync("./data/warns.json", "utf8"));
-    if (message.channel.type === "dm") return;
-     
-    var mentionned = message.mentions.users.first();
-     
-    if(!message.guild.member(message.author).roles.find('name', 'Modérateurs')) 
-    
-    return message.reply("**:x: Vous n'avez pas la permission `Gérer le serveur` dans ce serveur**").catch(console.error);
-     
-    if(message.mentions.users.size === 0) {
-     
-      return message.channel.send("**:x: Vous n'avez mentionnée aucun utilisateur**");
-     
-    }else{
-     
-        const args = message.content.split(' ').slice(1);
-     
-        const mentioned = message.mentions.users.first();
-     
-        if(message.guild.member(message.author).roles.find('name', 'Modérateurs')){
-     
-          if (message.mentions.users.size != 0) {
-     
-            if (args[0] === "<@!"+mentioned.id+">"||args[0] === "<@"+mentioned.id+">") {
-     
-              if (args.slice(1).length != 0) {
-     
-                const date = new Date().toUTCString();
-     
-                if (warns[message.guild.id] === undefined)
-     
-                  warns[message.guild.id] = {};
-     
-                if (warns[message.guild.id][mentioned.id] === undefined)
-     
-                  warns[message.guild.id][mentioned.id] = {};
-     
-                const warnumber = Object.keys(warns[message.guild.id][mentioned.id]).length;
-     
-                if (warns[message.guild.id][mentioned.id][warnumber] === undefined){
-     
-                  warns[message.guild.id][mentioned.id]["1"] = {"raison": args.slice(1).join(' '), time: date, user: message.author.id};
-     
-                } else {
-     
-                  warns[message.guild.id][mentioned.id][warnumber+1] = {"raison": args.slice(1).join(' '),
-     
-                    time: date,
-     
-                    user: message.author.id};
-     
-                }
-     
-                fs.writeFile("./data/warns.json", JSON.stringify(warns), (err) => {if (err) console.error(err);});
-     
-    message.delete();
-     
-                message.channel.send(':warning: | **'+mentionned.tag+' à été averti**');
-     
-    message.mentions.users.first().send(`:warning: **Warn |** depuis **${message.guild.name}** donné par **${message.author.username}**\n\n**Raison:** ` + args.slice(1).join(' '))
-     
-              } else {
-     
-                message.channel.send("Erreur mauvais usage: "+prefix+"warn <user> <raison>");
-     
-              }
-     
-            } else {
-     
-              message.channel.send("Erreur mauvais usage: "+prefix+"warn <user> <raison>");
-     
-            }
-     
-          } else {
-     
-            message.channel.send("Erreur mauvais usage: "+prefix+"warn <user> <raison>");
-     
-          }
-     
-        } else {
-     
-          message.channel.send("**:x: Vous n'avez pas la permission `Gérer le serveur` dans ce serveur**");
-     
-        }
-     
+
+    var command = message.content.split(" ")[0].slice(prefix.length).toLowerCase()
+
+    if(command === "love") {
+        require(`./Commands/love`).run(message, bot, discord ,Discord, prefix )
       }
-     
-    }
-     
-     
-     bot.on
 
-    if (message.content.startsWith (prefix + "listwarn")||message.content === prefix + "listwarn") {
- 
-        if (message.channel.type === "dm") return;
-         
-        if(!message.guild.member(message.author).roles.find('name', 'Modérateurs')) 
-        
-        return message.reply("**:x: Vous n'avez pas la permission `Gérer le serveur` dans ce serveur**").catch(console.error);
-         
-            const mentioned = message.mentions.users.first();
-         
-            const args = message.content.split(' ').slice(1);
-         
-            if(message.guild.member(message.author).roles.find('name', 'Modérateurs')){
-         
-              if (message.mentions.users.size !== 0) {
-         
-                if (args[0] === "<@!"+mentioned.id+">"||args[0] === "<@"+mentioned.id+">") {
-         
-                  try {
-         
-                    if (warns[message.guild.id][mentioned.id] === undefined||Object.keys(warns[message.guild.id][mentioned.id]).length === 0) {
-         
-                      message.channel.send("**"+mentioned.tag+"** n'a aucun warn :eyes:");
-         
-                      return;
-         
-                    }
-         
-                  } catch (err) {
-         
-                    message.channel.send("**"+mentioned.tag+"** n'a aucun warn :eyes:");
-         
-                    return;
-         
-                  }
-         
-                  let arr = [];
-         
-                  arr.push(`**${mentioned.tag}** a **`+Object.keys(warns[message.guild.id][mentioned.id]).length+"** warns :eyes:");
-         
-                  for (var warn in warns[message.guild.id][mentioned.id]) {
-         
-                    arr.push(`**${warn}** - **"`+warns[message.guild.id][mentioned.id][warn].raison+
-         
-                    "**\" warn donné par **"+message.guild.members.find("id", warns[message.guild.id][mentioned.id][warn].user).user.tag+"** a/le **"+warns[message.guild.id][mentioned.id][warn].time+"**");
-         
-                  }
-         
-                  message.channel.send(arr.join('\n'));
-         
-                } else {
-         
-                  message.channel.send("Erreur mauvais usage: "+prefix+"listwarn <user> <raison>");
-         
-                  console.log(args);
-         
-                }
-         
-              } else {
-         
-                message.channel.send("Erreur mauvais usage: "+prefix+"listwarn <user> <raison>");
-         
-              }
-         
-            } else {
-         
-              message.channel.send("**:x: Vous n'avez pas la permission `Gérer le serveur` dans ce serveur**");
-         
-            }
-         
-          }
      
-     
-    if (message.content.startsWith(prefix + "deletewarn")||message.content === prefix + "deletewarn") {
-     
-    if (message.channel.type === "dm") return;
-     
-    if(!message.guild.member(message.author).hasPermission("MANAGE_GUILD")) 
     
-    return message.reply("**:x: Vous n'avez pas la permission `Gérer le serveur` dans ce serveur**").catch(console.error);
-     
-       const mentioned = message.mentions.users.first();
-     
-        const args = message.content.split(' ').slice(1);
-     
-        const arg2 = Number(args[1]);
-     
-        if (message.member.hasPermission('MANAGE_GUILD')){
-     
-          if (message.mentions.users.size != 0) {
-     
-            if (args[0] === "<@!"+mentioned.id+">"||args[0] === "<@"+mentioned.id+">"){
-     
-              if (!isNaN(arg2)) {
-     
-                if (warns[message.guild.id][mentioned.id] === undefined) {
-     
-                  message.channel.send(mentioned.tag+" n'a aucun warn");
-     
-                  return;
-     
-                } if (warns[message.guild.id][mentioned.id][arg2] === undefined) {
-     
-                  message.channel.send("**:x: Ce warn n'existe pas**");
-     
-                  return;
-     
-                }
-     
-                delete warns[message.guild.id][mentioned.id][arg2];
-     
-                var i = 1;
-     
-                Object.keys(warns[message.guild.id][mentioned.id]).forEach(function(key){
-     
-                  var val = warns[message.guild.id][mentioned.id][key];
-     
-                  delete warns[message.guild.id][mentioned.id][key];
-     
-                  key = i;
-     
-                  warns[message.guild.id][mentioned.id][key]=val;
-     
-                  i++;
-     
-                });
-     
-                fs.writeFile("./data/warns.json", JSON.stringify(warns), (err) => {if (err) console.error(err);});
-     
-                if (Object.keys(warns[message.guild.id][mentioned.id]).length === 0) {
-     
-                  delete warns[message.guild.id][mentioned.id];
-     
-                }
-     
-                message.channel.send(`Le warn de **${mentioned.tag}**\': **${args[1]}** a été enlevé avec succès!`);
-     
-                return;
-     
-              } if (args[1] === "tout") {
-     
-                delete warns[message.guild.id][mentioned.id];
-     
-                fs.writeFile("./data/warns.json", JSON.stringify(warns), (err) => {if (err) console.error(err);});
-     
-                message.channel.send(`Les warns de **${mentioned.tag}** a été enlevé avec succès!`);
-     
-                return;
-     
-              } else {
-     
-                message.channel.send("Erreur mauvais usage: "+prefix+"deletewarn <utilisateur> <nombre>");
-     
-              }
-     
-            } else {
-     
-              message.channel.send("Erreur mauvais usage: "+prefix+"deletewarn <utilisateur> <nombre>");
-     
-            }
-     
-          } else {
-     
-           message.channel.send("Erreur mauvais usage: "+prefix+"deletewarn <utilisateur> <nombre>");
-     
-          }
-     
-        } else {
-     
-          message.channel.send("**:x: Vous n'avez pas la permission `Gérer le serveur` dans ce serveur**");
-     
-        }
 
-    }})
-   
+
+      
+
+ });
