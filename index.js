@@ -4,7 +4,6 @@ var Discord = discord
 var client = bot
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
-const adapter = new FileSync('DataBase.json')
 const db = low(adapter)
 const fs = require("fs")
 const math = require('mathjs');
